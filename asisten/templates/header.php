@@ -1,124 +1,196 @@
 <?php
-// Pastikan session sudah dimulai
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Cek jika pengguna belum login atau bukan asisten
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'asisten') {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Mengambil data pengguna dari session
-$asistenName = $_SESSION['user_name'] ?? 'Asisten';
+// 2. DEFINISI VARIABEL: Menyiapkan variabel untuk digunakan di template
+$asistenName = $_SESSION['nama'] ?? '';
 $pageTitle = $pageTitle ?? 'Dashboard';
 $activePage = $activePage ?? 'dashboard';
 
-// Warna dari palet (DISAMAKAN DENGAN HEADER MAHASISWA)
-$primaryColor = '093880'; // Primary Blue
-$bgColor = '093880';      // Background
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="arya"> 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Asisten - <?php echo $pageTitle; ?></title>
     
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/swup@4" defer></script>
-
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        :root {
+            --color-base-100: oklch(42% 0.199 265.638);
+            --color-base-200: oklch(37% 0.146 265.522);
+            --color-base-300: oklch(100% 0 0);
+            --color-base-content: oklch(84.955% 0 0);
+            --color-primary: oklch(70% 0.213 47.604);
+            --color-primary-content: oklch(100% 0 0);
+            --color-secondary: oklch(100% 0 0);
+            --color-secondary-content: oklch(37% 0.146 265.522);
+            --color-accent: oklch(64.8% 0.223 136.073);
+            --color-accent-content: oklch(100% 0 0);
+            --color-neutral: oklch(24.371% 0.046 65.681);
+            --color-neutral-content: oklch(84.874% 0.009 65.681);
+            --color-info: oklch(54.615% 0.215 262.88);
+            --color-info-content: oklch(90.923% 0.043 262.88);
+            --color-success: oklch(62.705% 0.169 149.213);
+            --color-success-content: oklch(100% 0 0);
+            --color-warning: oklch(66.584% 0.157 58.318);
+            --color-warning-content: oklch(100% 0 0);
+            --color-error: oklch(57% 0.245 27.325);
+            --color-error-content: oklch(100% 0 0);
+            --radius-selector: 1rem;
+            --radius-field: 1rem;
+            --radius-box: 1rem;
+            --size-selector: 0.25rem;
+            --size-field: 0.25rem;
+            --border: 1px;
+            --depth: 1;
+            --noise: 0;
+        }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: oklch(37% 0.146 265.522) !important; /* New background color */
+            color: oklch(84.955% 0 0) !important; /* Arya base-content text */
+        }
+        
+        .btn-primary {
+            background-color: oklch(100% 0 0) !important; /* Primary color */
+            color: oklch(42% 0.199 265.638) !important; /* White text */
+            font-weight: bold
+        }
+        
+        .btn-primary:hover {
+            background-color: oklch(42% 0.199 265.638) !important; /* Swap to dark background */
+            color: oklch(100% 0 0) !important; /* Swap to white text */
+            font-weight: bold !important; /* Bold text */
+        }
 
-        /* CSS untuk Efek "Scooped" */
-        .active-scoop {
-            position: relative;
-            background-color: white;
-            color: #<?php echo $bgColor; ?>;
+        .btn-ghost {
+            color: oklch(84.955% 0 0) !important; /* Arya base-content text */
+        }
+
+        .btn-ghost:hover {
+            background-color: oklch(70% 0.213 47.604) !important; /* Primary color background on hover */
+            color: oklch(100% 0 0) !important; /* White text on hover */
+        }
+
+        .btn-error {
+            background-color: oklch(70% 0.213 47.604) !important; /* Error color */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+
+        .btn-error:hover {
+            background-color: oklch(100% 0 0) !important; /* Darker error color on hover */
+            color: oklch(70% 0.213 47.604) !important; /* White text on hover */
+        }
+
+        /* Custom select styling */
+        .select.select-bordered {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom select background */
+            border-color: oklch(42% 0.199 265.638) !important; /* Custom border color */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+        
+        .select.select-bordered:focus {
+            border-color: oklch(70% 0.213 47.604) !important; /* Primary color border on focus */
+            outline: none !important;
+        }
+
+        /* Custom dropdown styling */
+        .dropdown-hover:hover .dropdown-content {
+            display: block !important;
+        }
+        
+        .dropdown-content.menu {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom dropdown background */
+            border: 0.5px solid oklch(42% 0.199 265.638) !important; /* Custom border */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important; /* Enhanced shadow */
+        }
+        
+        .dropdown-content.menu li a {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom item background */
+            color: oklch(100% 0 0) !important; /* White text */
+            transition: all 0.2s ease !important;
+        }
+        
+        .dropdown-content.menu li a:hover {
+            background-color: oklch(70% 0.213 47.604) !important; /* Primary color background on hover */
+            color: oklch(100% 0 0) !important; /* White text on hover */
+        }
+        
+        .dropdown .btn {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom button background */
+            border-color: oklch(42% 0.199 265.638) !important; /* Custom border color */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+        
+        .dropdown .btn:hover {
+            background-color: oklch(70% 0.213 47.604) !important; /* Primary color background on hover */
+            border-color: oklch(70% 0.213 47.604) !important; /* Primary color border on hover */
+            color: oklch(100% 0 0) !important; /* White text on hover */
+        }
+
+        /* Custom navbar background */
+        .navbar.bg-base-100 {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom navbar color */
+        }
+        
+        /* Custom sidebar background */
+        .drawer-side .menu.bg-base-100 {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom sidebar color */
+        }
+
+        .stat-title,
+        .stat-desc,
+        .table th,
+        .table td,
+        .font-semibold,
+        .text-sm,
+        .flex-grow {
+            color: oklch(100% 0 0) !important; /* White text for stat titles */
+        }
+        
+        /* Active menu styling */
+        .menu li.active > a {
+            background-color: oklch(70% 0.213 47.604) !important; /* Primary color */
+            color: oklch(100% 0 0) !important; /* White text */
             font-weight: 600;
-            border-top-left-radius: 9999px;
-            border-bottom-left-radius: 9999px;
+            border-radius: 0.5rem;
         }
-        .active-scoop::before,
-        .active-scoop::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            width: 2rem; /* 32px */
-            height: 2rem; /* 32px */
-            background-color: transparent;
-        }
-        .active-scoop::before {
-            top: -2rem; /* -32px */
-            border-bottom-right-radius: 9999px;
-            box-shadow: 0 1rem 0 0 white; /* 16px */
-        }
-        .active-scoop::after {
-            bottom: -2rem; /* -32px */
-            border-top-right-radius: 9999px;
-            box-shadow: 0 -1rem 0 0 white; /* -16px */
-        }
+        
 
-        /* CSS untuk Animasi Perpindahan Halaman */
-        .transition-slide {
-            transition: opacity 0.3s, transform 0.3s;
-            transform: translateX(0);
-            opacity: 1;
+        .menu li.active > a:hover {
+            background-color: oklch(65% 0.213 47.604) !important; /* Slightly darker primary */
         }
-        html.is-leaving .transition-slide {
-            opacity: 0;
-            transform: translateY(15px);
+        
+        /* Hover effect for non-active menu items */
+        .menu li:not(.active) > a:hover {
+            background-color: oklch(84.955% 0 0) !important; /* White background */
+            color: oklch(32% 0.1 265.522) !important; /* Dark text */
         }
-        html.is-rendering .transition-slide {
-            opacity: 0;
-            transform: translateY(-15px);
+        
+        /* Custom card background */
+        .card.bg-base-100,
+        .stats.bg-base-100 {
+            background-color: oklch(28% 0.091 267.935) !important; /* Custom card color */
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-base-200">
 
-<div class="flex h-screen bg-gray-100">
-    <aside class="w-72 bg-[#<?php echo $bgColor; ?>] text-white hidden lg:flex flex-col">
-        <div class="h-24 flex items-center justify-center">
-            <h2 class="text-3xl font-bold text-white">SIMPRAK</h2>
-        </div>
-        
-        <nav class="flex-grow">
-            <ul class="space-y-1 py-4">
-                <?php 
-                    $activeClass = 'active-scoop'; // Class baru untuk efek scooped
-                    $inactiveClass = 'text-blue-100 hover:bg-white/10 mx-6 rounded-full';
-                ?>
-                <li class="relative"><a href="dashboard.php" class="<?php echo ($activePage == 'dashboard') ? $activeClass : $inactiveClass; ?> flex items-center pl-8 pr-6 py-3 transition-all duration-300"><svg class="w-6 h-6 mr-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg><span>Dashboard</span></a></li>
-                <li class="relative"><a href="praktikum.php" class="<?php echo ($activePage == 'praktikum') ? $activeClass : $inactiveClass; ?> flex items-center pl-8 pr-6 py-3 transition-all duration-300"><svg class="w-6 h-6 mr-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.75h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5-13.5h16.5" /></svg><span>Mata Praktikum</span></a></li>
-                <li class="relative"><a href="modul.php" class="<?php echo ($activePage == 'modul') ? $activeClass : $inactiveClass; ?> flex items-center pl-8 pr-6 py-3 transition-all duration-300"><svg class="w-6 h-6 mr-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg><span>Modul</span></a></li>
-                <li class="relative"><a href="laporan.php" class="<?php echo ($activePage == 'laporan') ? $activeClass : $inactiveClass; ?> flex items-center pl-8 pr-6 py-3 transition-all duration-300"><svg class="w-6 h-6 mr-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75c0-.231-.035-.454-.1-.664M6.75 7.5h1.5M6.75 12h1.5m6.75 0h1.5m-1.5 3h1.5m-1.5 3h1.5M4.5 6.75h1.5v1.5H4.5v-1.5zM4.5 12h1.5v1.5H4.5v-1.5zM4.5 17.25h1.5v1.5H4.5v-1.5z"/></svg><span>Laporan Masuk</span></a></li>
-                <li class="relative"><a href="pengguna.php" class="<?php echo ($activePage == 'pengguna') ? $activeClass : $inactiveClass; ?> flex items-center pl-8 pr-6 py-3 transition-all duration-300"><svg class="w-6 h-6 mr-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-4.67c.12-.241.252-.477.396-.702a4.125 4.125 0 013.472-2.132c.225 0 .445.03.655.084m-6.374 0c-1.132 0-2.186-.223-3.131-.628m-6.374 0c-1.132 0-2.186-.223-3.131-.628m18.536 0c-1.132 0-2.186-.223-3.131-.628m-6.374 0c-1.132 0-2.186-.223-3.131-.628" /></svg><span>Akun Pengguna</span></a></li>
-            </ul>
-        </nav>
-        
-        <div class="p-6 mt-auto text-center">
-            <a href="../logout.php" class="text-sm text-blue-200 hover:underline">Logout</a>
-        </div>
-    </aside>
-
-    <div id="swup" class="transition-slide flex-1 flex flex-col overflow-hidden">
-        <header class="lg:hidden bg-white shadow-md">
-            <div class="flex items-center justify-between px-4 py-3">
-                <h2 class="text-xl font-bold text-gray-800">SIMPRAK</h2>
-                <button id="mobile-menu-button" class="text-gray-500 focus:outline-none focus:text-gray-700">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
+<div class="drawer lg:drawer-open">
+    <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+    <div class="drawer-content flex flex-col items-start justify-start">
+        <div class="navbar bg-base-100 lg:hidden">
+            <div class="flex-none">
+                <label for="my-drawer-2" class="btn btn-square btn-ghost drawer-button">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </label>
             </div>
-        </header>
-
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-            <div class="container mx-auto px-6 py-8">
-                <h1 class="text-3xl font-bold text-gray-800 mb-6"><?php echo $pageTitle; ?></h1>
-                ```
+            <div class="flex-1">
+                <a class="btn btn-ghost text-xl">SIMPRAK</a>
+            </div>
+        </div>
+        <main class="flex-1 p-6 lg:p-8 w-full">
+            <h1 class="text-3xl font-bold mb-6" style="color: oklch(100% 0 0);"><?php echo $pageTitle; ?></h1>
