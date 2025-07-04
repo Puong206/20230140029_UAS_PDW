@@ -3,8 +3,7 @@
 $pageTitle = 'Modul';
 $activePage = 'modul';
 
-// 2. Panggil Header & Koneksi
-require_once 'templates/header.php';
+// 2. Panggil koneksi TERLEBIH DAHULU sebelum header
 require_once __DIR__ . '/../config.php';
 
 // 3. Keamanan & Role Check
@@ -80,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // --- Mengambil Data untuk Tampilan & Filter ---
 $filter_praktikum_id = $_GET['filter_praktikum'] ?? '';
-$sql = "SELECT m.id, m.judul_modul, m.deskripsi_modul, m.file_materi, mp.nama_praktikum 
+$sql = "SELECT m.id, m.id_praktikum, m.judul_modul, m.deskripsi_modul, m.file_materi, mp.nama_praktikum 
         FROM modul m 
         JOIN mata_praktikum mp ON m.id_praktikum = mp.id";
 
@@ -98,132 +97,254 @@ $result = $stmt_modul->get_result();
 
 $praktikums_for_filter = $conn->query("SELECT id, nama_praktikum FROM mata_praktikum ORDER BY nama_praktikum");
 $praktikums_for_modal = $conn->query("SELECT id, nama_praktikum FROM mata_praktikum ORDER BY nama_praktikum");
+
+// 4. Panggil Header SETELAH semua logika POST selesai
+require_once 'templates/header.php';
 ?>
 
 <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-    <form action="modul.php" method="GET" class="flex items-center gap-2">
-        <select name="filter_praktikum" onchange="this.form.submit()" class="block w-full sm:w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#093880] focus:border-[#093880] rounded-md shadow-sm">
-            <option value="">Filter Semua Praktikum</option>
-            <?php while($p = $praktikums_for_filter->fetch_assoc()): ?>
-                <option value="<?php echo $p['id']; ?>" <?php echo ($filter_praktikum_id == $p['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($p['nama_praktikum']); ?></option>
-            <?php endwhile; ?>
-        </select>
-        <a href="modul.php" class="text-sm text-gray-600 hover:underline">Reset</a>
-    </form>
-    <button onclick="openModal('create')" class="w-full sm:w-auto flex items-center bg-[#093880] text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-[#072c66] transition-colors">
-        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+    <div class="flex items-center gap-2">
+        <div class="dropdown dropdown-hover">
+            <div tabindex="0" role="button" class="btn">
+                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <?php 
+                if (!empty($filter_praktikum_id)) {
+                    $selected_praktikum = $conn->query("SELECT nama_praktikum FROM mata_praktikum WHERE id = $filter_praktikum_id")->fetch_assoc();
+                    echo htmlspecialchars($selected_praktikum['nama_praktikum']);
+                } else {
+                    echo 'Filter Praktikum';
+                }
+                ?>
+                <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow-sm">
+                <li>
+                    <a href="modul.php" class="<?php echo empty($filter_praktikum_id) ? 'bg-primary text-white' : ''; ?>">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                        Semua Praktikum
+                    </a>
+                </li>
+                <?php 
+                $praktikums_for_filter->data_seek(0);
+                while($p = $praktikums_for_filter->fetch_assoc()): 
+                ?>
+                    <li>
+                        <a href="modul.php?filter_praktikum=<?php echo $p['id']; ?>" class="<?php echo ($filter_praktikum_id == $p['id']) ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <?php echo htmlspecialchars($p['nama_praktikum']); ?>
+                        </a>
+                    </li>
+                <?php endwhile; ?>
+            </ul>
+        </div>
+        <?php if (!empty($filter_praktikum_id)): ?>
+            <a href="modul.php" class="btn btn-ghost btn-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Reset
+            </a>
+        <?php endif; ?>
+    </div>
+    <button onclick="openModal('create')" class="btn btn-primary">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
         Tambah Modul
     </button>
 </div>
 
 <?php
 if (isset($_SESSION['message'])) {
-    $message_type = $_SESSION['message']['type'] === 'sukses' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
-    echo '<div class="border ' . $message_type . ' px-4 py-3 rounded-lg relative mb-6" role="alert"><span class="block sm:inline">' . htmlspecialchars($_SESSION['message']['text']) . '</span></div>';
+    $alert_class = $_SESSION['message']['type'] === 'sukses' ? 'alert-success' : 'alert-error';
+    echo '<div class="alert ' . $alert_class . ' mb-6"><span>' . htmlspecialchars($_SESSION['message']['text']) . '</span></div>';
     unset($_SESSION['message']);
 }
 ?>
 
-<div class="w-full">
-    <table class="w-full text-left" style="border-collapse: separate; border-spacing: 0 .75rem;">
-        <thead class="text-xs text-gray-500 uppercase tracking-wider">
-            <tr>
-                <th class="p-4">Judul Modul</th>
-                <th class="p-4">Mata Praktikum</th>
-                <th class="p-4">File Materi</th>
-                <th class="p-4 text-center">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if ($result && $result->num_rows > 0): ?>
-                <?php while($row = $result->fetch_assoc()): ?>
-                    <tr class="bg-white hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300">
-                        <td class="p-4 rounded-l-lg">
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($row['judul_modul']); ?></p>
-                            <p class="text-xs text-gray-500"><?php echo htmlspecialchars($row['deskripsi_modul']); ?></p>
-                        </td>
-                        <td class="p-4 text-gray-600"><?php echo htmlspecialchars($row['nama_praktikum']); ?></td>
-                        <td class="p-4">
-                            <?php if($row['file_materi']): ?>
-                                <a href="../uploads/materi/<?php echo htmlspecialchars($row['file_materi']); ?>" target="_blank" class="text-blue-600 hover:underline text-sm">Lihat File</a>
-                            <?php else: ?>
-                                <span class="text-sm text-gray-400">Tidak ada</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="p-4 text-center rounded-r-lg">
-                            <div class="flex justify-center space-x-2">
-                                <button onclick="openModal('update', this)" 
-                                    data-id="<?php echo $row['id']; ?>"
-                                    data-id-praktikum="<?php echo $row['id_praktikum']; ?>"
-                                    data-judul="<?php echo htmlspecialchars($row['judul_modul']); ?>"
-                                    data-deskripsi="<?php echo htmlspecialchars($row['deskripsi_modul']); ?>"
-                                    data-file="<?php echo htmlspecialchars($row['file_materi']); ?>"
-                                    class="p-2 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-full transition-colors">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                                </button>
-                                <button onclick="openDeleteModal(<?php echo $row['id']; ?>)" class="p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-full transition-colors">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                                </button>
+<div class="card bg-base-100 shadow-lg">
+    <div class="overflow-x-auto">
+        <table class="table table-zebra">
+            <thead>
+                <tr>
+                    <th>Judul Modul</th>
+                    <th>Mata Praktikum</th>
+                    <th>File Materi</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($result && $result->num_rows > 0): ?>
+                    <?php while($row = $result->fetch_assoc()): ?>
+                        <tr class="hover">
+                            <td>
+                                <div class="font-semibold"><?php echo htmlspecialchars($row['judul_modul']); ?></div>
+                                <div class="text-sm opacity-70"><?php echo htmlspecialchars($row['deskripsi_modul']); ?></div>
+                            </td>
+                            <td><?php echo htmlspecialchars($row['nama_praktikum']); ?></td>
+                            <td>
+                                <?php if($row['file_materi']): ?>
+                                    <a href="../uploads/materi/<?php echo htmlspecialchars($row['file_materi']); ?>" target="_blank" class="link link-primary">Lihat File</a>
+                                <?php else: ?>
+                                    <span class="text-sm opacity-50">Tidak ada</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <div class="flex justify-center gap-2">
+                                    <button onclick="openModal('update', this)" 
+                                        data-id="<?php echo $row['id']; ?>"
+                                        data-id-praktikum="<?php echo $row['id_praktikum']; ?>"
+                                        data-judul="<?php echo htmlspecialchars($row['judul_modul']); ?>"
+                                        data-deskripsi="<?php echo htmlspecialchars($row['deskripsi_modul']); ?>"
+                                        data-file="<?php echo htmlspecialchars($row['file_materi']); ?>"
+                                        class="btn btn-sm btn-circle btn-primary">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                                    </button>
+                                    <button onclick="openDeleteModal(<?php echo $row['id']; ?>)" class="btn btn-sm btn-circle btn-error">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="4" class="text-center py-12">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="w-16 h-16 text-accent mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <h3 class="text-lg font-semibold mb-2">Belum ada modul</h3>
+                                <p class="opacity-70 mb-4">Data modul tidak ditemukan. Coba reset filter atau tambah modul baru.</p>
+                                <button onclick="openModal('create')" class="btn btn-primary btn-sm">Tambah Modul</button>
                             </div>
                         </td>
                     </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <tr><td colspan="4" class="text-center py-10 text-gray-500"><div class="p-6 bg-white rounded-lg shadow-md">Data modul tidak ditemukan. Coba reset filter.</div></td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div id="formModal" class="fixed inset-0 bg-gray-800 bg-opacity-25 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 border w-full max-w-lg shadow-2xl rounded-2xl bg-white/90">
+<dialog id="formModal" class="modal">
+    <div class="modal-box">
         <form id="dataForm" action="modul.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="action" id="formAction">
             <input type="hidden" name="id" id="formId">
             <input type="hidden" name="old_file_materi" id="formOldFile">
-            <div class="flex justify-between items-center mb-4"><h3 id="modalTitle" class="text-lg font-bold text-gray-900"></h3><button type="button" onclick="closeModal('formModal')" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button></div>
+            
+            <h3 id="modalTitle" class="font-bold text-lg mb-4"></h3>
+            
             <div class="space-y-4">
-                <div>
-                    <label for="id_praktikum" class="block text-sm font-medium text-gray-700">Mata Praktikum</label>
-                    <select name="id_praktikum" id="formPraktikum" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
-                        <option value="">Pilih Praktikum...</option>
-                        <?php while($p = $praktikums_for_modal->fetch_assoc()): ?><option value="<?php echo $p['id']; ?>"><?php echo htmlspecialchars($p['nama_praktikum']); ?></option><?php endwhile; ?>
-                    </select>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Mata Praktikum</span>
+                    </label>
+                    <div class="dropdown dropdown-hover w-full">
+                        <div tabindex="0" role="button" class="btn w-full justify-between" id="praktikumDropdownBtn">
+                            <span id="praktikumDropdownText">Pilih Praktikum...</span>
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-full p-2 shadow-sm max-h-60 overflow-y-auto">
+                            <?php 
+                            // Reset pointer untuk modal
+                            $praktikums_for_modal->data_seek(0);
+                            while($p = $praktikums_for_modal->fetch_assoc()): 
+                            ?>
+                                <li>
+                                    <a href="#" onclick="selectPraktikum('<?php echo $p['id']; ?>', '<?php echo htmlspecialchars($p['nama_praktikum']); ?>')" class="praktikum-option" data-value="<?php echo $p['id']; ?>">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                        <?php echo htmlspecialchars($p['nama_praktikum']); ?>
+                                    </a>
+                                </li>
+                            <?php endwhile; ?>
+                        </ul>
+                    </div>
+                    <input type="hidden" name="id_praktikum" id="formPraktikum" required>
                 </div>
-                <div>
-                    <label for="judul_modul" class="block text-sm font-medium text-gray-700">Judul Modul</label>
-                    <input type="text" name="judul_modul" id="formJudul" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                
+                <div class="form-control">
+                    <label class="label" for="judul_modul">
+                        <span class="label-text">Judul Modul</span>
+                    </label>
+                    <input type="text" name="judul_modul" id="formJudul" class="input input-bordered" required>
                 </div>
-                <div>
-                    <label for="deskripsi_modul" class="block text-sm font-medium text-gray-700">Deskripsi</label>
-                    <textarea name="deskripsi_modul" id="formDeskripsi" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+                
+                <div class="form-control">
+                    <label class="label" for="deskripsi_modul">
+                        <span class="label-text">Deskripsi</span>
+                    </label>
+                    <textarea name="deskripsi_modul" id="formDeskripsi" rows="3" class="textarea textarea-bordered"></textarea>
                 </div>
-                <div>
-                    <label for="file_materi" class="block text-sm font-medium text-gray-700">File Materi (PDF, DOCX)</label>
-                    <input type="file" name="file_materi" id="formFile" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    <p class="text-xs text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah file yang ada.</p>
+                
+                <div class="form-control">
+                    <label class="label" for="file_materi">
+                        <span class="label-text">File Materi (PDF, DOCX)</span>
+                    </label>
+                    <input type="file" name="file_materi" id="formFile" class="file-input file-input-bordered">
+                    <label class="label">
+                        <span class="label-text-alt">Kosongkan jika tidak ingin mengubah file yang ada.</span>
+                    </label>
                 </div>
             </div>
-            <div class="mt-6 flex justify-end space-x-3"><button type="button" onclick="closeModal('formModal')" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Batal</button><button type="submit" class="bg-[#093880] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#072c66]">Simpan</button></div>
+            
+            <div class="modal-action">
+                <button type="button" onclick="closeModal('formModal')" class="btn btn-ghost">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
         </form>
     </div>
-</div>
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="closeModal('formModal')">close</button>
+    </form>
+</dialog>
 
-<div id="deleteModal" class="fixed inset-0 bg-gray-800 bg-opacity-25 backdrop-blur-sm hidden z-50">
-    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 border w-full max-w-md shadow-2xl rounded-2xl bg-white/90">
+<dialog id="deleteModal" class="modal">
+    <div class="modal-box text-center">
         <form action="modul.php" method="POST">
-            <input type="hidden" name="action" value="delete"><input type="hidden" name="id" id="deleteId">
-            <div class="text-center">
-                <svg class="mx-auto mb-4 text-red-500 w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <h3 class="mb-5 text-lg font-normal text-gray-600">Anda yakin ingin menghapus modul ini?</h3>
-                <button type="submit" class="text-white bg-red-600 hover:bg-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">Ya, Hapus</button>
-                <button type="button" onclick="closeModal('deleteModal')" class="text-gray-500 bg-white hover:bg-gray-100 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900">Batal</button>
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" id="deleteId">
+            
+            <svg class="mx-auto mb-4 text-error w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            
+            <h3 class="text-lg font-bold mb-4">Konfirmasi Hapus</h3>
+            <p class="mb-6 opacity-70">Anda yakin ingin menghapus modul ini? Tindakan ini tidak dapat dibatalkan.</p>
+            
+            <div class="modal-action justify-center">
+                <button type="button" onclick="closeModal('deleteModal')" class="btn btn-ghost">Batal</button>
+                <button type="submit" class="btn btn-error">Ya, Hapus</button>
             </div>
         </form>
     </div>
-</div>
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="closeModal('deleteModal')">close</button>
+    </form>
+</dialog>
 
 <script>
+function selectPraktikum(value, text) {
+    document.getElementById('formPraktikum').value = value;
+    document.getElementById('praktikumDropdownText').textContent = text;
+    
+    // Update active state
+    document.querySelectorAll('.praktikum-option').forEach(option => {
+        option.classList.remove('bg-primary', 'text-white');
+    });
+    document.querySelector(`[data-value="${value}"]`).classList.add('bg-primary', 'text-white');
+}
+
 function openModal(action, button = null) {
     const modal = document.getElementById('formModal');
     const form = document.getElementById('dataForm');
@@ -235,24 +356,38 @@ function openModal(action, button = null) {
         title.textContent = 'Tambah Modul Baru';
         document.getElementById('formId').value = '';
         document.getElementById('formOldFile').value = '';
+        
+        // Reset dropdown to default
+        document.getElementById('praktikumDropdownText').textContent = 'Pilih Praktikum...';
+        document.getElementById('formPraktikum').value = '';
+        document.querySelectorAll('.praktikum-option').forEach(option => {
+            option.classList.remove('bg-primary', 'text-white');
+        });
     } else if (action === 'update') {
         title.textContent = 'Edit Modul';
         document.getElementById('formId').value = button.dataset.id;
-        document.getElementById('formPraktikum').value = button.dataset.idPraktikum;
         document.getElementById('formJudul').value = button.dataset.judul;
         document.getElementById('formDeskripsi').value = button.dataset.deskripsi;
         document.getElementById('formOldFile').value = button.dataset.file;
+        
+        // Set praktikum dropdown
+        const praktikumId = button.dataset.idPraktikum;
+        const praktikumOption = document.querySelector(`[data-value="${praktikumId}"]`);
+        if (praktikumOption) {
+            const praktikumText = praktikumOption.textContent.trim();
+            selectPraktikum(praktikumId, praktikumText);
+        }
     }
-    modal.classList.remove('hidden');
+    modal.showModal();
 }
 
 function openDeleteModal(id) {
     document.getElementById('deleteId').value = id;
-    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('deleteModal').showModal();
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    document.getElementById(modalId).close();
 }
 </script>
 
