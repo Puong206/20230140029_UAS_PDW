@@ -1,4 +1,8 @@
 <?php
+// Memulai session jika belum dimulai
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Pengaturan Database
 define('DB_SERVER', '127.0.0.1');
