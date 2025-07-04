@@ -3,8 +3,7 @@
 $pageTitle = 'Laporan Masuk';
 $activePage = 'laporan';
 
-// 2. Panggil Header dan koneksi
-require_once 'templates/header.php';
+// 2. Panggil koneksi TERLEBIH DAHULU sebelum header
 require_once __DIR__ . '/../config.php';
 
 // Pastikan yang login adalah asisten
@@ -89,141 +88,372 @@ $praktikums = $conn->query("SELECT id, nama_praktikum FROM mata_praktikum ORDER 
 $moduls = $conn->query("SELECT id, judul_modul FROM modul ORDER BY judul_modul");
 $mahasiswas = $conn->query("SELECT id, nama FROM users WHERE role = 'mahasiswa' ORDER BY nama");
 
+// 3. Panggil Header SETELAH semua logika POST selesai
+require_once 'templates/header.php';
+
 ?>
 
-<div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-4">Filter Laporan</h2>
-    <form action="laporan.php" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-        <div>
-            <label for="filter_praktikum" class="block text-sm font-medium text-gray-700">Praktikum</label>
-            <select name="filter_praktikum" id="filter_praktikum" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#093880] focus:border-[#093880] sm:text-sm rounded-md shadow-sm">
-                <option value="">Semua</option>
-                <?php while($p = $praktikums->fetch_assoc()): ?><option value="<?php echo $p['id']; ?>" <?php echo ($filter_praktikum_id == $p['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($p['nama_praktikum']); ?></option><?php endwhile; ?>
-            </select>
-        </div>
-        <div>
-            <label for="filter_modul" class="block text-sm font-medium text-gray-700">Modul</label>
-            <select name="filter_modul" id="filter_modul" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#093880] focus:border-[#093880] sm:text-sm rounded-md shadow-sm">
-                <option value="">Semua</option>
-                 <?php while($m = $moduls->fetch_assoc()): ?><option value="<?php echo $m['id']; ?>" <?php echo ($filter_modul_id == $m['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($m['judul_modul']); ?></option><?php endwhile; ?>
-            </select>
-        </div>
-        <div>
-            <label for="filter_mahasiswa" class="block text-sm font-medium text-gray-700">Mahasiswa</label>
-            <select name="filter_mahasiswa" id="filter_mahasiswa" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#093880] focus:border-[#093880] sm:text-sm rounded-md shadow-sm">
-                <option value="">Semua</option>
-                <?php while($mhs = $mahasiswas->fetch_assoc()): ?><option value="<?php echo $mhs['id']; ?>" <?php echo ($filter_mahasiswa_id == $mhs['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($mhs['nama']); ?></option><?php endwhile; ?>
-            </select>
-        </div>
-        <div>
-            <label for="filter_status" class="block text-sm font-medium text-gray-700">Status</label>
-            <select name="filter_status" id="filter_status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#093880] focus:border-[#093880] sm:text-sm rounded-md shadow-sm">
-                <option value="">Semua</option>
-                <option value="dinilai" <?php echo ($filter_status == 'dinilai') ? 'selected' : ''; ?>>Sudah Dinilai</option>
-                <option value="belum_dinilai" <?php echo ($filter_status == 'belum_dinilai') ? 'selected' : ''; ?>>Belum Dinilai</option>
-            </select>
-        </div>
-        <div class="flex space-x-2">
-            <button type="submit" class="w-full inline-flex justify-center py-2 px-4 shadow-sm text-sm font-medium rounded-md text-white bg-[#093880] hover:bg-[#072c66] transition-colors">Filter</button>
-            <a href="laporan.php" class="w-full inline-flex justify-center py-2 px-4 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors">Reset</a>
-        </div>
-    </form>
-</div>
-
-<?php
-if (isset($_SESSION['message'])) {
-    $message_type = $_SESSION['message']['type'] === 'sukses' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
-    echo '<div class="border ' . $message_type . ' px-4 py-3 rounded-lg relative mb-6" role="alert"><span class="block sm:inline">' . htmlspecialchars($_SESSION['message']['text']) . '</span></div>';
-    unset($_SESSION['message']);
-}
-?>
-
-<div class="w-full">
-    <table class="w-full text-left" style="border-collapse: separate; border-spacing: 0 .75rem;">
-        <thead class="text-xs text-gray-500 uppercase tracking-wider">
-            <tr>
-                <th class="p-4">Mahasiswa</th>
-                <th class="p-4">Detail Laporan</th>
-                <th class="p-4">Tanggal Kumpul</th>
-                <th class="p-4">Status</th>
-                <th class="p-4 text-center">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if ($result_laporan->num_rows > 0): ?>
-                <?php while($row = $result_laporan->fetch_assoc()): ?>
-                    <tr class="bg-white hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300">
-                        <td class="p-4 rounded-l-lg"><?php echo htmlspecialchars($row['nama_mahasiswa']); ?></td>
-                        <td class="p-4">
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($row['judul_modul']); ?></p>
-                            <p class="text-xs text-gray-500"><?php echo htmlspecialchars($row['nama_praktikum']); ?></p>
-                        </td>
-                        <td class="p-4"><?php echo date('d M Y, H:i', strtotime($row['tanggal_kumpul'])); ?></td>
-                        <td class="p-4">
-                            <?php if($row['nilai'] !== null): ?>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><span class="w-2 h-2 mr-1.5 bg-green-500 rounded-full"></span>Sudah Dinilai</span>
-                            <?php else: ?>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><span class="w-2 h-2 mr-1.5 bg-yellow-500 rounded-full"></span>Belum Dinilai</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="p-4 text-center rounded-r-lg">
-                            <button onclick="openModal(this)"
-                                data-laporan-id="<?php echo $row['laporan_id']; ?>"
-                                data-mahasiswa="<?php echo htmlspecialchars($row['nama_mahasiswa']); ?>"
-                                data-modul="<?php echo htmlspecialchars($row['judul_modul']); ?>"
-                                data-file-laporan="<?php echo htmlspecialchars($row['file_laporan']); ?>"
-                                data-nilai="<?php echo htmlspecialchars($row['nilai']); ?>"
-                                data-feedback="<?php echo htmlspecialchars($row['feedback']); ?>"
-                                class="bg-[#eb8317] hover:bg-[#c87011] text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
-                                Nilai
-                            </button>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="5" class="text-center py-10 text-gray-500">
-                        <div class="p-6 bg-white rounded-lg shadow-md">Tidak ada laporan ditemukan.</div>
-                    </td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
-
-<div id="nilaiModal" class="fixed inset-0 bg-gray-800 bg-opacity-25 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-opacity">
-    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 border w-full max-w-lg shadow-2xl rounded-2xl bg-white/90">
-        <div class="mt-3">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg leading-6 font-bold text-gray-900" id="modalTitle">Beri Nilai Laporan</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+<div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+        <h2 class="card-title mb-4">Filter Laporan</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <!-- Filter Praktikum -->
+            <div class="dropdown dropdown-hover">
+                <div tabindex="0" role="button" class="btn w-full justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <span>
+                            <?php 
+                            if (!empty($filter_praktikum_id)) {
+                                $selected_praktikum = $conn->query("SELECT nama_praktikum FROM mata_praktikum WHERE id = $filter_praktikum_id")->fetch_assoc();
+                                echo htmlspecialchars($selected_praktikum['nama_praktikum']);
+                            } else {
+                                echo 'Praktikum';
+                            }
+                            ?>
+                        </span>
+                    </div>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow-sm">
+                    <li>
+                        <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_praktikum' => ''])); ?>" class="<?php echo empty($filter_praktikum_id) ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Semua Praktikum
+                        </a>
+                    </li>
+                    <?php 
+                    $praktikums->data_seek(0);
+                    while($p = $praktikums->fetch_assoc()): 
+                    ?>
+                        <li>
+                            <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_praktikum' => $p['id']])); ?>" class="<?php echo ($filter_praktikum_id == $p['id']) ? 'bg-primary text-white' : ''; ?>">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                <?php echo htmlspecialchars($p['nama_praktikum']); ?>
+                            </a>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
             </div>
-            <div class="text-sm text-gray-600 mb-4 p-4 bg-gray-50 rounded-lg">
-                <p><strong>Mahasiswa:</strong> <span id="modalMahasiswa"></span></p>
-                <p><strong>Modul:</strong> <span id="modalModul"></span></p>
-                <p><a id="modalDownloadLink" href="#" target="_blank" class="text-blue-600 hover:underline font-semibold">Unduh File Laporan</a></p>
+
+            <!-- Filter Modul -->
+            <div class="dropdown dropdown-hover">
+                <div tabindex="0" role="button" class="btn w-full justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>
+                            <?php 
+                            if (!empty($filter_modul_id)) {
+                                $selected_modul = $conn->query("SELECT judul_modul FROM modul WHERE id = $filter_modul_id")->fetch_assoc();
+                                echo htmlspecialchars($selected_modul['judul_modul']);
+                            } else {
+                                echo 'Modul';
+                            }
+                            ?>
+                        </span>
+                    </div>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow-sm">
+                    <li>
+                        <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_modul' => ''])); ?>" class="<?php echo empty($filter_modul_id) ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Semua Modul
+                        </a>
+                    </li>
+                    <?php 
+                    $moduls->data_seek(0);
+                    while($m = $moduls->fetch_assoc()): 
+                    ?>
+                        <li>
+                            <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_modul' => $m['id']])); ?>" class="<?php echo ($filter_modul_id == $m['id']) ? 'bg-primary text-white' : ''; ?>">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <?php echo htmlspecialchars($m['judul_modul']); ?>
+                            </a>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
             </div>
-            <form action="laporan.php?<?php echo http_build_query($_GET); ?>" method="POST">
-                <input type="hidden" name="laporan_id" id="modalLaporanId">
-                <div class="mb-4">
-                    <label for="nilai" class="block text-sm font-medium text-gray-700">Nilai (0-100)</label>
-                    <input type="number" name="nilai" id="modalNilai" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#093880] focus:border-[#093880] sm:text-sm" required>
+
+            <!-- Filter Mahasiswa -->
+            <div class="dropdown dropdown-hover">
+                <div tabindex="0" role="button" class="btn w-full justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>
+                            <?php 
+                            if (!empty($filter_mahasiswa_id)) {
+                                $selected_mahasiswa = $conn->query("SELECT nama FROM users WHERE id = $filter_mahasiswa_id")->fetch_assoc();
+                                echo htmlspecialchars($selected_mahasiswa['nama']);
+                            } else {
+                                echo 'Mahasiswa';
+                            }
+                            ?>
+                        </span>
+                    </div>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </div>
-                <div>
-                    <label for="feedback" class="block text-sm font-medium text-gray-700">Feedback</label>
-                    <textarea name="feedback" id="modalFeedback" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#093880] focus:border-[#093880] sm:text-sm"></textarea>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow-sm">
+                    <li>
+                        <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_mahasiswa' => ''])); ?>" class="<?php echo empty($filter_mahasiswa_id) ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Semua Mahasiswa
+                        </a>
+                    </li>
+                    <?php 
+                    $mahasiswas->data_seek(0);
+                    while($mhs = $mahasiswas->fetch_assoc()): 
+                    ?>
+                        <li>
+                            <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_mahasiswa' => $mhs['id']])); ?>" class="<?php echo ($filter_mahasiswa_id == $mhs['id']) ? 'bg-primary text-white' : ''; ?>">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <?php echo htmlspecialchars($mhs['nama']); ?>
+                            </a>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+            </div>
+
+            <!-- Filter Status -->
+            <div class="dropdown dropdown-hover">
+                <div tabindex="0" role="button" class="btn w-full justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                            <?php 
+                            if ($filter_status == 'dinilai') {
+                                echo 'Sudah Dinilai';
+                            } elseif ($filter_status == 'belum_dinilai') {
+                                echo 'Belum Dinilai';
+                            } else {
+                                echo 'Status';
+                            }
+                            ?>
+                        </span>
+                    </div>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">Batal</button>
-                    <button type="submit" name="submit_nilai" class="bg-[#093880] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#072c66] transition-colors">Simpan Nilai</button>
-                </div>
-            </form>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow-sm">
+                    <li>
+                        <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_status' => ''])); ?>" class="<?php echo empty($filter_status) ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Semua Status
+                        </a>
+                    </li>
+                    <li>
+                        <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_status' => 'dinilai'])); ?>" class="<?php echo ($filter_status == 'dinilai') ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Sudah Dinilai
+                        </a>
+                    </li>
+                    <li>
+                        <a href="laporan.php?<?php echo http_build_query(array_merge($_GET, ['filter_status' => 'belum_dinilai'])); ?>" class="<?php echo ($filter_status == 'belum_dinilai') ? 'bg-primary text-white' : ''; ?>">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Belum Dinilai
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Reset Button -->
+            <div class="flex justify-center">
+                <?php if (!empty($filter_praktikum_id) || !empty($filter_modul_id) || !empty($filter_mahasiswa_id) || !empty($filter_status)): ?>
+                    <a href="laporan.php" class="btn btn-ghost w-full">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Reset Filter
+                    </a>
+                <?php else: ?>
+                    <div class="btn btn-ghost w-full opacity-50 cursor-not-allowed">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Reset Filter
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>
 
+<?php
+if (isset($_SESSION['message'])) {
+    $alert_class = $_SESSION['message']['type'] === 'sukses' ? 'alert-success' : 'alert-error';
+    echo '<div class="alert ' . $alert_class . ' mb-6"><span>' . htmlspecialchars($_SESSION['message']['text']) . '</span></div>';
+    unset($_SESSION['message']);
+}
+?>
+
+<div class="card bg-base-100 shadow-lg">
+    <div class="overflow-x-auto">
+        <table class="table table-zebra">
+            <thead>
+                <tr>
+                    <th>Mahasiswa</th>
+                    <th>Detail Laporan</th>
+                    <th>Tanggal Kumpul</th>
+                    <th>Status</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($result_laporan->num_rows > 0): ?>
+                    <?php while($row = $result_laporan->fetch_assoc()): ?>
+                        <tr class="hover">
+                            <td>
+                                <div class="font-semibold"><?php echo htmlspecialchars($row['nama_mahasiswa']); ?></div>
+                            </td>
+                            <td>
+                                <div class="font-semibold"><?php echo htmlspecialchars($row['judul_modul']); ?></div>
+                                <div class="text-sm opacity-70"><?php echo htmlspecialchars($row['nama_praktikum']); ?></div>
+                            </td>
+                            <td><?php echo date('d M Y, H:i', strtotime($row['tanggal_kumpul'])); ?></td>
+                            <td>
+                                <?php if($row['nilai'] !== null): ?>
+                                    <div class="badge badge-success gap-2">
+                                        <div class="w-2 h-2 bg-success-content rounded-full"></div>
+                                        Sudah Dinilai
+                                    </div>
+                                <?php else: ?>
+                                    <div class="badge badge-warning gap-2">
+                                        <div class="w-2 h-2 bg-warning-content rounded-full"></div>
+                                        Belum Dinilai
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <button onclick="openModal(this)"
+                                    data-laporan-id="<?php echo $row['laporan_id']; ?>"
+                                    data-mahasiswa="<?php echo htmlspecialchars($row['nama_mahasiswa']); ?>"
+                                    data-modul="<?php echo htmlspecialchars($row['judul_modul']); ?>"
+                                    data-file-laporan="<?php echo htmlspecialchars($row['file_laporan']); ?>"
+                                    data-nilai="<?php echo htmlspecialchars($row['nilai']); ?>"
+                                    data-feedback="<?php echo htmlspecialchars($row['feedback']); ?>"
+                                    class="btn btn-sm btn-primary">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Nilai
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="text-center py-12">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="w-16 h-16 text-accent mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <h3 class="text-lg font-semibold mb-2">Belum ada laporan</h3>
+                                <p class="opacity-70 mb-4">Tidak ada laporan ditemukan. Coba ubah filter atau tunggu mahasiswa mengumpulkan laporan.</p>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<dialog id="nilaiModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4" id="modalTitle">Beri Nilai Laporan</h3>
+        
+        <div class="bg-base-200 p-4 rounded-lg mb-4">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="font-semibold">Mahasiswa:</span>
+                    <span id="modalMahasiswa"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span class="font-semibold">Modul:</span>
+                    <span id="modalModul"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <a id="modalDownloadLink" href="#" target="_blank" class="link link-primary font-semibold">Unduh File Laporan</a>
+                </div>
+            </div>
+        </div>
+        
+        <form action="laporan.php?<?php echo http_build_query($_GET); ?>" method="POST">
+            <input type="hidden" name="laporan_id" id="modalLaporanId">
+            
+            <div class="form-control mb-4">
+                <label class="label" for="nilai">
+                    <span class="label-text">Nilai (0-100)</span>
+                </label>
+                <input type="number" name="nilai" id="modalNilai" class="input input-bordered" min="0" max="100" required>
+            </div>
+            
+            <div class="form-control mb-6">
+                <label class="label" for="feedback">
+                    <span class="label-text">Feedback</span>
+                </label>
+                <textarea name="feedback" id="modalFeedback" rows="4" class="textarea textarea-bordered" placeholder="Berikan feedback untuk mahasiswa..."></textarea>
+            </div>
+            
+            <div class="modal-action">
+                <button type="button" onclick="closeModal()" class="btn btn-ghost">Batal</button>
+                <button type="submit" name="submit_nilai" class="btn btn-primary">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Simpan Nilai
+                </button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="closeModal()">close</button>
+    </form>
+</dialog>
+
 <script>
-// JavaScript tetap sama, tidak perlu diubah
 function openModal(button) {
     document.getElementById('modalLaporanId').value = button.dataset.laporanId;
     document.getElementById('modalMahasiswa').textContent = button.dataset.mahasiswa;
@@ -237,10 +467,10 @@ function openModal(button) {
     } else {
         document.getElementById('modalTitle').textContent = 'Beri Nilai Laporan';
     }
-    document.getElementById('nilaiModal').classList.remove('hidden');
+    document.getElementById('nilaiModal').showModal();
 }
 function closeModal() {
-    document.getElementById('nilaiModal').classList.add('hidden');
+    document.getElementById('nilaiModal').close();
 }
 </script>
 
