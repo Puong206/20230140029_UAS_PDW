@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'config.php';
 
 // Hapus semua variabel session
 $_SESSION = array();
@@ -8,6 +8,6 @@ $_SESSION = array();
 session_destroy();
 
 // Redirect ke halaman login
-header("Location: ../login.php");
+header("Location: login.php");
 exit;
 ?>
