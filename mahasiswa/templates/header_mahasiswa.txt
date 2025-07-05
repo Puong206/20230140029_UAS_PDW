@@ -1,0 +1,771 @@
+<?php
+// 2. DEFINISI VARIABEL: Menyiapkan variabel untuk digunakan di template
+$mahasiswaName = $_SESSION['user_name'] ?? 'Mahasiswa';
+$pageTitle = $pageTitle ?? 'Dashboard';
+$activePage = $activePage ?? 'dashboard';
+
+// Pastikan session sudah dimulai
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Cek jika pengguna belum login dan alihkan ke halaman login
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+?>
+<!DOCTYPE html>
+<html lang="id" data-theme="light"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Mahasiswa - <?php echo $pageTitle; ?></title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-base-100: oklch(100% 0 0);
+            --color-base-200: oklch(96% 0 0);
+            --color-base-300: oklch(42% 0.199 265.638);
+            --color-base-content: oklch(30% 0.199 265.638);
+            --color-primary: oklch(42% 0.199 265.638);
+            --color-primary-content: oklch(100% 0 0);
+            --color-secondary: oklch(42% 0.199 265.638);
+            --color-secondary-content: oklch(100% 0 0);
+            --color-accent: oklch(55% 0.223 136.073);
+            --color-accent-content: oklch(100% 0 0);
+            --color-neutral: oklch(85% 0 0);
+            --color-neutral-content: oklch(30% 0.199 265.638);
+            --color-info: oklch(54.615% 0.215 262.88);
+            --color-info-content: oklch(90.923% 0.043 262.88);
+            --color-success: oklch(62.705% 0.169 149.213);
+            --color-success-content: oklch(100% 0 0);
+            --color-warning: oklch(66.584% 0.157 58.318);
+            --color-warning-content: oklch(100% 0 0);
+            --color-error: oklch(57% 0.245 27.325);
+            --color-error-content: oklch(100% 0 0);
+            --radius-selector: 1rem;
+            --radius-field: 1rem;
+            --radius-box: 1rem;
+            --size-selector: 0.25rem;
+            --size-field: 0.25rem;
+            --border: 1px;
+            --depth: 1;
+            --noise: 0;
+        }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: oklch(96% 0 0) !important; /* Light background */
+            color: oklch(30% 0.199 265.638) !important; /* Dark text */
+        }
+        
+        .btn-primary {
+            background-color: oklch(42% 0.199 265.638) !important; /* Blue primary */
+            color: oklch(100% 0 0) !important; /* White text */
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background-color: oklch(37% 0.199 265.638) !important; /* Darker blue on hover */
+            color: oklch(100% 0 0) !important; /* White text */
+            font-weight: bold !important;
+        }
+
+        .btn-ghost {
+            color: oklch(30% 0.199 265.638) !important; /* Dark text */
+        }
+
+        .btn-ghost:hover {
+            background-color: oklch(42% 0.199 265.638) !important; /* Blue background on hover */
+            color: oklch(100% 0 0) !important; /* White text on hover */
+        }
+
+        .btn-error {
+            background-color: oklch(57% 0.245 27.325) !important; /* Error color */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+
+        .btn-error:hover {
+            background-color: oklch(52% 0.245 27.325) !important; /* Darker error on hover */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+
+        /* Custom select styling */
+        .select.select-bordered {
+            background-color: oklch(100% 0 0) !important; /* White select background */
+            border-color: oklch(85% 0 0) !important; /* Light border */
+            color: oklch(30% 0.199 265.638) !important; /* Dark text */
+        }
+        
+        .select.select-bordered:focus {
+            border-color: oklch(42% 0.199 265.638) !important; /* Blue border on focus */
+            outline: none !important;
+        }
+
+        /* Custom dropdown styling */
+        .dropdown-hover:hover .dropdown-content {
+            display: block !important;
+        }
+        
+        .dropdown-content.menu {
+            background-color: oklch(100% 0 0) !important; /* White dropdown background */
+            border: 0.5px solid oklch(85% 0 0) !important; /* Light border */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important; /* Light shadow */
+        }
+        
+        .dropdown-content.menu li a {
+            background-color: oklch(100% 0 0) !important; /* White item background */
+            color: oklch(30% 0.199 265.638) !important; /* Dark text */
+            transition: all 0.2s ease !important;
+        }
+        
+        .dropdown-content.menu li a:hover {
+            background-color: oklch(42% 0.199 265.638) !important; /* Blue background on hover */
+            color: oklch(100% 0 0) !important; /* White text on hover */
+        }
+
+        /* Custom navbar background */
+        .navbar.bg-base-100 {
+            background-color: oklch(100% 0 0) !important; /* White navbar */
+            border-bottom: 1px solid oklch(85% 0 0) !important; /* Light border */
+        }
+
+        .stat-title,
+        .stat-desc,
+        .table th,
+        .table td,
+        .font-semibold,
+        .text-sm,
+        .flex-grow {
+            color: oklch(30% 0.199 265.638) !important; /* Dark text */
+        }
+        
+        /* Active menu styling */
+        .menu li a.active {
+            background-color: oklch(42% 0.199 265.638) !important; /* Blue active */
+            color: oklch(100% 0 0) !important; /* White text */
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+
+        .menu li a.active:hover {
+            background-color: oklch(37% 0.199 265.638) !important; /* Slightly darker blue */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+        
+        /* Hover effect for non-active menu items */
+        .menu li a:not(.active):hover {
+            background-color: oklch(42% 0.199 265.638) !important; /* Blue background */
+            color: oklch(100% 0 0) !important; /* White text */
+        }
+        
+        /* Custom card background */
+        .card.bg-base-100,
+        .stats.bg-base-100 {
+            background-color: oklch(100% 0 0) !important; /* White card */
+            border: 1px solid oklch(85% 0 0) !important; /* Light border */
+        }
+        
+        /* Animation keyframes for mahasiswa theme */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateX(-20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate3d(0,0,0);
+            }
+            40%, 43% {
+                transform: translate3d(0, -30px, 0);
+            }
+            70% {
+                transform: translate3d(0, -15px, 0);
+            }
+            90% {
+                transform: translate3d(0, -4px, 0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes floatDelayed {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Animation utility classes */
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out; }
+        .animate-slide-in { animation: slideIn 0.5s ease-out; }
+        .animate-bounce-gentle { animation: bounce 2s infinite; }
+        .animate-pulse-gentle { animation: pulse 2s infinite; }
+        .animate-shimmer { 
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-float-delayed { animation: floatDelayed 3s ease-in-out infinite 1.5s; }
+        .animate-sparkle { animation: sparkle 2s ease-in-out infinite; }
+        .animate-spin-slow { animation: spinSlow 10s linear infinite; }
+        
+        /* Hover effects */
+        .hover-scale:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        /* Loading states */
+        .loading-shimmer {
+            background: linear-gradient(90deg, oklch(96% 0 0) 25%, oklch(100% 0 0) 50%, oklch(96% 0 0) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 1024px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+    </style>
+    
+    <script>
+        // Animation utilities for mahasiswa panel
+        const AnimationUtils = {
+            // Animate counter numbers
+            animateCounter: function(element, target, duration = 1000) {
+                const start = parseInt(element.textContent) || 0;
+                const range = target - start;
+                const startTime = performance.now();
+                
+                function updateCounter(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                    const current = Math.round(start + (range * easeOutQuart));
+                    
+                    element.textContent = current;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(updateCounter);
+                    }
+                }
+                
+                requestAnimationFrame(updateCounter);
+            },
+            
+            // Create sparkle effect
+            createSparkle: function(element) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'absolute w-1 h-1 bg-blue-400 rounded-full animate-ping';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                
+                element.style.position = 'relative';
+                element.appendChild(sparkle);
+                
+                setTimeout(() => sparkle.remove(), 1000);
+            },
+            
+            // Add ripple effect to buttons
+            addRippleEffect: function(button, event) {
+                const rect = button.getBoundingClientRect();
+                const ripple = document.createElement('span');
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.className = 'absolute bg-white/30 rounded-full animate-ping pointer-events-none';
+                
+                button.style.position = 'relative';
+                button.style.overflow = 'hidden';
+                button.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            }
+        };
+        
+        // Initialize animations when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats counters if they exist
+            document.querySelectorAll('[data-counter]').forEach(counter => {
+                const target = parseInt(counter.dataset.counter);
+                AnimationUtils.animateCounter(counter, target);
+            });
+            
+            // Add hover effects to cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.classList.add('hover-lift');
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.classList.remove('hover-lift');
+                });
+            });
+
+            // Add ripple effect to buttons
+            document.querySelectorAll('.btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    AnimationUtils.addRippleEffect(this, e);
+                });
+            });
+        });
+    </script>
+</head>
+<body class="bg-base-200">
+
+<nav class="navbar bg-base-100 shadow-lg sticky top-0 z-50 border-b border-[oklch(85%_0_0)]">
+    <div class="navbar-start">
+        <!-- Mobile menu button -->
+        <div class="dropdown">
+            <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                <li><a href="dashboard.php" class="<?php echo ($activePage == 'dashboard') ? 'active' : ''; ?>">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v3H8V5z"></path>
+                    </svg>
+                    Dashboard
+                </a></li>
+                <li><a href="my_courses.php" class="<?php echo ($activePage == 'my_courses') ? 'active' : ''; ?>">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Praktikum Saya
+                </a></li>
+                <li><a href="courses.php" class="<?php echo ($activePage == 'courses') ? 'active' : ''; ?>">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Cari Praktikum
+                </a></li>
+            </ul>
+        </div>
+
+        <!-- Brand logo and name -->
+        <div class="flex items-center ml-2 lg:ml-0">
+            <svg class="w-8 h-8 text-[oklch(42%_0.199_265.638)] mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+            </svg>
+            <span class="text-xl lg:text-2xl font-bold text-[oklch(30%_0.199_265.638)]">SIMPRAK</span>
+        </div>
+    </div>
+    
+    <!-- Desktop menu in center -->
+    <div class="navbar-center hidden lg:flex">
+        <ul class="menu menu-horizontal px-1 space-x-2">
+            <li>
+                <a href="dashboard.php" class="<?php echo ($activePage == 'dashboard') ? 'active' : ''; ?> flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v3H8V5z"></path>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="my_courses.php" class="<?php echo ($activePage == 'my_courses') ? 'active' : ''; ?> flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Praktikum Saya
+                </a>
+            </li>
+            <li>
+                <a href="courses.php" class="<?php echo ($activePage == 'courses') ? 'active' : ''; ?> flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Cari Praktikum
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Profile dropdown on the right -->
+    <div class="navbar-end">
+        <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                <div class="w-10 rounded-full ring-2 ring-[oklch(42%_0.199_265.638)] ring-offset-2">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($mahasiswaName); ?>&background=42659B&color=fff" alt="Avatar" />
+                </div>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                <li class="menu-title">
+                    <span class="text-[oklch(42%_0.199_265.638)] font-semibold"><?php echo htmlspecialchars($mahasiswaName); ?></span>
+                </li>
+                <li><a class="text-xs opacity-60">Mahasiswa - SIMPRAK</a></li>
+                <li><hr class="my-2"></li>
+                <li>
+                    <a href="../logout.php" class="text-red-500 hover:bg-red-50">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content Container with Responsive Padding -->
+<main class="min-h-screen bg-base-200">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 lg:py-8 max-w-7xl">
+        <!-- Content starts here -->
+
+                <div class="relative p-6 mb-6 bg-gradient-to-br from-[oklch(96%_0_0)]/80 via-[oklch(100%_0_0)]/40 to-[oklch(96%_0_0)]/60 rounded-2xl border border-[oklch(42%_0.199_265.638)]/30 backdrop-blur-lg shadow-lg overflow-hidden">
+                    <!-- Background Decoration -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-[oklch(42%_0.199_265.638)]/5 to-transparent opacity-50"></div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-[oklch(42%_0.199_265.638)]/10 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-[oklch(42%_0.199_265.638)]/5 rounded-full translate-y-12 -translate-x-12 blur-xl"></div>
+                    
+                    <!-- Profile Content -->
+                    <div class="relative z-10 flex items-center group cursor-pointer hover:scale-[1.02] transition-all duration-500">
+                        <!-- Avatar with Enhanced Effects -->
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-[oklch(42%_0.199_265.638)]/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-500"></div>
+                            <div class="avatar online relative z-10">
+                                <div class="w-16 h-16 rounded-full ring-4 ring-[oklch(42%_0.199_265.638)]/80 ring-offset-4 ring-offset-[oklch(100%_0_0)] transition-all duration-500 group-hover:ring-[oklch(42%_0.199_265.638)] group-hover:ring-offset-2 group-hover:scale-110 shadow-2xl">
+                                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($mahasiswaName); ?>&background=42659B&color=fff" alt="Avatar" />
+                                </div>
+                            </div>
+                            <!-- Floating Sparkle Effects -->
+                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-[oklch(42%_0.199_265.638)] rounded-full animate-ping opacity-75"></div>
+                            <div class="absolute top-2 -left-2 w-2 h-2 bg-[oklch(42%_0.199_265.638)]/60 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <!-- User Info with Enhanced Typography -->
+                        <div class="ml-6 flex-grow space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-xl text-[oklch(30%_0.199_265.638)] group-hover:text-[oklch(42%_0.199_265.638)] transition-colors duration-300 leading-tight">
+                                    <?php echo htmlspecialchars($mahasiswaName); ?>
+                                </h3>
+                                <div class="badge badge-sm bg-[oklch(42%_0.199_265.638)]/20 text-[oklch(42%_0.199_265.638)] border-[oklch(42%_0.199_265.638)]/30 font-medium">
+                                    Mahasiswa
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-[oklch(30%_0.199_265.638)]/80 group-hover:text-[oklch(30%_0.199_265.638)] transition-colors duration-300">
+                                <svg class="w-4 h-4 text-[oklch(42%_0.199_265.638)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                                </svg>
+                                <span class="text-sm font-medium">Sistem Praktikum</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-xs text-[oklch(30%_0.199_265.638)]/60">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Aktif sejak <?php echo date('H:i'); ?></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Indicator -->
+                        <div class="flex flex-col items-end space-y-2">
+                            <div class="flex items-center gap-1">
+                                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-green-400 font-medium">Active</span>
+                            </div>
+                            <svg class="w-5 h-5 text-[oklch(30%_0.199_265.638)]/40 group-hover:text-[oklch(42%_0.199_265.638)] transition-all duration-300 group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Accent Line -->
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[oklch(42%_0.199_265.638)]/50 to-transparent"></div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <ul class="flex-grow space-y-2">
+                    <li class="<?php echo ($activePage == 'dashboard') ? 'bg-[oklch(42%_0.199_265.638)]/20 rounded-lg' : ''; ?>">
+                        <a href="dashboard.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-[oklch(42%_0.199_265.638)]/10 hover:translate-x-1 group <?php echo ($activePage == 'dashboard') ? 'text-[oklch(42%_0.199_265.638)] font-semibold bg-[oklch(42%_0.199_265.638)]/10' : 'hover:text-[oklch(42%_0.199_265.638)]'; ?>">
+                            <div class="p-2 rounded-lg bg-[oklch(42%_0.199_265.638)]/20 group-hover:bg-[oklch(42%_0.199_265.638)]/30 transition-all duration-300">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v3H8V5z"></path>
+                                </svg>
+                            </div>
+                            <span class="font-medium">Dashboard</span>
+                            <?php if ($activePage == 'dashboard'): ?>
+                                <div class="ml-auto w-2 h-2 bg-[oklch(42%_0.199_265.638)] rounded-full animate-pulse"></div>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo ($activePage == 'my_courses') ? 'bg-[oklch(30%_0.199_265.638)]/20 rounded-lg' : ''; ?>">
+                        <a href="my_courses.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-[oklch(30%_0.199_265.638)]/10 hover:translate-x-1 group <?php echo ($activePage == 'my_courses') ? 'text-[oklch(30%_0.199_265.638)] font-semibold bg-[oklch(30%_0.199_265.638)]/10' : 'hover:text-[oklch(30%_0.199_265.638)]'; ?>">
+                            <div class="p-2 rounded-lg bg-[oklch(30%_0.199_265.638)]/20 group-hover:bg-[oklch(30%_0.199_265.638)]/30 transition-all duration-300">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Praktikum Saya</span>
+                            <?php if ($activePage == 'my_courses'): ?>
+                                <div class="ml-auto w-2 h-2 bg-[oklch(30%_0.199_265.638)] rounded-full animate-pulse"></div>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo ($activePage == 'courses') ? 'bg-[oklch(30%_0.199_265.638)]/20 rounded-lg' : ''; ?>">
+                        <a href="courses.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-[oklch(30%_0.199_265.638)]/10 hover:translate-x-1 group <?php echo ($activePage == 'courses') ? 'text-[oklch(30%_0.199_265.638)] font-semibold bg-[oklch(30%_0.199_265.638)]/10' : 'hover:text-[oklch(30%_0.199_265.638)]'; ?>">
+                            <div class="p-2 rounded-lg bg-[oklch(30%_0.199_265.638)]/20 group-hover:bg-[oklch(30%_0.199_265.638)]/30 transition-all duration-300">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Cari Praktikum</span>
+                            <?php if ($activePage == 'courses'): ?>
+                                <div class="ml-auto w-2 h-2 bg-[oklch(30%_0.199_265.638)] rounded-full animate-pulse"></div>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Footer & Logout -->
+                    <!-- Logout Button -->
+                    <a href="../logout.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-red-500/20 hover:translate-x-1 group text-red-400 hover:text-red-300">
+                        <div class="p-2 rounded-lg bg-red-500/20 group-hover:bg-red-500/30 transition-all duration-300">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </div>
+                        <span class="font-medium">Logout</span>
+                    </a>
+                    
+                    <!-- Brand Footer -->
+                    <div class="text-center p-4 bg-[oklch(96%_0_0)]/30 rounded-lg backdrop-blur-sm">
+                        <div class="flex items-center justify-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-[oklch(42%_0.199_265.638)]" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                            </svg>
+                            <span class="font-bold text-sm text-[oklch(42%_0.199_265.638)]">SIMPRAK</span>
+                        </div>
+                        <p class="text-xs opacity-60 font-medium text-[oklch(30%_0.199_265.638)]">&copy; <?php echo date('Y'); ?> Sistem Pengumpulan Tugas</p>
+                        <div class="mt-2 flex justify-center">
+                            <div class="badge bg-[oklch(42%_0.199_265.638)] text-[oklch(100%_0_0)] badge-sm border-0">v2.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>        <div class="drawer-side">
+            <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label> 
+            
+            <div class="menu p-6 w-80 min-h-full bg-gradient-to-b from-[oklch(100%_0_0)] to-[oklch(96%_0_0)] text-[oklch(30%_0.199_265.638)] flex flex-col shadow-2xl border-r border-[oklch(85%_0_0)]">
+                <!-- Header Profile Section -->
+                <div class="relative p-6 mb-6 bg-gradient-to-br from-[oklch(96%_0_0)]/80 via-[oklch(100%_0_0)]/40 to-[oklch(96%_0_0)]/60 rounded-2xl border border-[oklch(42%_0.199_265.638)]/30 backdrop-blur-lg shadow-lg overflow-hidden">
+                    <!-- Background Decoration -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-[oklch(42%_0.199_265.638)]/5 to-transparent opacity-50"></div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-[oklch(42%_0.199_265.638)]/10 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-[oklch(42%_0.199_265.638)]/5 rounded-full translate-y-12 -translate-x-12 blur-xl"></div>
+                    
+                    <!-- Profile Content -->
+                    <div class="relative z-10 flex items-center group cursor-pointer hover:scale-[1.02] transition-all duration-500">
+                        <!-- Avatar with Enhanced Effects -->
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-[oklch(42%_0.199_265.638)]/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-500"></div>
+                            <div class="avatar online relative z-10">
+                                <div class="w-16 h-16 rounded-full ring-4 ring-[oklch(42%_0.199_265.638)]/80 ring-offset-4 ring-offset-[oklch(100%_0_0)] transition-all duration-500 group-hover:ring-[oklch(42%_0.199_265.638)] group-hover:ring-offset-2 group-hover:scale-110 shadow-2xl">
+                                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($mahasiswaName); ?>&background=42659B&color=fff" alt="Avatar" />
+                                </div>
+                            </div>
+                            <!-- Floating Sparkle Effects -->
+                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-[oklch(42%_0.199_265.638)] rounded-full animate-ping opacity-75"></div>
+                            <div class="absolute top-2 -left-2 w-2 h-2 bg-[oklch(42%_0.199_265.638)]/60 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <!-- User Info with Enhanced Typography -->
+                        <div class="ml-6 flex-grow space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-xl text-[oklch(30%_0.199_265.638)] group-hover:text-[oklch(42%_0.199_265.638)] transition-colors duration-300 leading-tight">
+                                    <?php echo htmlspecialchars($mahasiswaName); ?>
+                                </h3>
+                                <div class="badge badge-sm bg-[oklch(42%_0.199_265.638)]/20 text-[oklch(42%_0.199_265.638)] border-[oklch(42%_0.199_265.638)]/30 font-medium">
+                                    Mahasiswa
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-[oklch(30%_0.199_265.638)]/80 group-hover:text-[oklch(30%_0.199_265.638)] transition-colors duration-300">
+                                <svg class="w-4 h-4 text-[oklch(42%_0.199_265.638)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                                </svg>
+                                <span class="text-sm font-medium">Sistem Praktikum</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-xs text-[oklch(30%_0.199_265.638)]/60">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Aktif sejak <?php echo date('H:i'); ?></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Indicator -->
+                        <div class="flex flex-col items-end space-y-2">
+                            <div class="flex items-center gap-1">
+                                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-green-400 font-medium">Active</span>
+                            </div>
+                            <svg class="w-5 h-5 text-[oklch(30%_0.199_265.638)]/40 group-hover:text-[oklch(42%_0.199_265.638)] transition-all duration-300 group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Accent Line -->
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[oklch(42%_0.199_265.638)]/50 to-transparent"></div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <ul class="flex-grow space-y-2">
+                    <li class="<?php echo ($activePage == 'dashboard') ? 'bg-[oklch(42%_0.199_265.638)]/20 rounded-lg' : ''; ?>">
+                        <a href="dashboard.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-[oklch(42%_0.199_265.638)]/10 hover:translate-x-1 group <?php echo ($activePage == 'dashboard') ? 'text-[oklch(42%_0.199_265.638)] font-semibold bg-[oklch(42%_0.199_265.638)]/10' : 'hover:text-[oklch(42%_0.199_265.638)]'; ?>">
+                            <div class="p-2 rounded-lg bg-[oklch(42%_0.199_265.638)]/20 group-hover:bg-[oklch(42%_0.199_265.638)]/30 transition-all duration-300">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v3H8V5z"></path>
+                                </svg>
+                            </div>
+                            <span class="font-medium">Dashboard</span>
+                            <?php if ($activePage == 'dashboard'): ?>
+                                <div class="ml-auto w-2 h-2 bg-[oklch(42%_0.199_265.638)] rounded-full animate-pulse"></div>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo ($activePage == 'my_courses') ? 'bg-[oklch(30%_0.199_265.638)]/20 rounded-lg' : ''; ?>">
+                        <a href="my_courses.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-[oklch(30%_0.199_265.638)]/10 hover:translate-x-1 group <?php echo ($activePage == 'my_courses') ? 'text-[oklch(30%_0.199_265.638)] font-semibold bg-[oklch(30%_0.199_265.638)]/10' : 'hover:text-[oklch(30%_0.199_265.638)]'; ?>">
+                            <div class="p-2 rounded-lg bg-[oklch(30%_0.199_265.638)]/20 group-hover:bg-[oklch(30%_0.199_265.638)]/30 transition-all duration-300">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Praktikum Saya</span>
+                            <?php if ($activePage == 'my_courses'): ?>
+                                <div class="ml-auto w-2 h-2 bg-[oklch(30%_0.199_265.638)] rounded-full animate-pulse"></div>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    
+                    <li class="<?php echo ($activePage == 'courses') ? 'bg-[oklch(30%_0.199_265.638)]/20 rounded-lg' : ''; ?>">
+                        <a href="courses.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-[oklch(30%_0.199_265.638)]/10 hover:translate-x-1 group <?php echo ($activePage == 'courses') ? 'text-[oklch(30%_0.199_265.638)] font-semibold bg-[oklch(30%_0.199_265.638)]/10' : 'hover:text-[oklch(30%_0.199_265.638)]'; ?>">
+                            <div class="p-2 rounded-lg bg-[oklch(30%_0.199_265.638)]/20 group-hover:bg-[oklch(30%_0.199_265.638)]/30 transition-all duration-300">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Cari Praktikum</span>
+                            <?php if ($activePage == 'courses'): ?>
+                                <div class="ml-auto w-2 h-2 bg-[oklch(30%_0.199_265.638)] rounded-full animate-pulse"></div>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Footer & Logout -->
+                    <!-- Logout Button -->
+                    <a href="../logout.php" class="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-red-500/20 hover:translate-x-1 group text-red-400 hover:text-red-300">
+                        <div class="p-2 rounded-lg bg-red-500/20 group-hover:bg-red-500/30 transition-all duration-300">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </div>
+                        <span class="font-medium">Logout</span>
+                    </a>
+                    
+                    <!-- Brand Footer -->
+                    <div class="text-center p-4 bg-[oklch(96%_0_0)]/30 rounded-lg backdrop-blur-sm">
+                        <div class="flex items-center justify-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-[oklch(42%_0.199_265.638)]" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                            </svg>
+                            <span class="font-bold text-sm text-[oklch(42%_0.199_265.638)]">SIMPRAK</span>
+                        </div>
+                        <p class="text-xs opacity-60 font-medium text-[oklch(30%_0.199_265.638)]">&copy; <?php echo date('Y'); ?> Sistem Pengumpulan Tugas</p>
+                        <div class="mt-2 flex justify-center">
+                            <div class="badge bg-[oklch(42%_0.199_265.638)] text-[oklch(100%_0_0)] badge-sm border-0">v2.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
