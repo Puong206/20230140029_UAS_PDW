@@ -160,12 +160,12 @@ $stmt_notif_daftar->close();
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-10 animate-fade-in-up px-2 sm:px-0" id="statsSection">
     <!-- Praktikum Diikuti Card -->
     <div class="card bg-base-100 shadow-2xl hover-lift transform transition-all duration-500 hover:shadow-3xl group mx-2 sm:mx-0">
-        <div class="card-body items-center text-center relative overflow-hidden p-6 sm:p-8">
+        <div class="card-body items-center text-center relative overflow-hidden p-6 sm:p-8 flex flex-col justify-center">
             <!-- Decorative Background -->
             <div class="absolute inset-0 bg-gradient-to-br from-[oklch(42%_0.199_265.638)]/5 to-transparent"></div>
             <div class="absolute top-0 right-0 w-24 h-24 bg-[oklch(42%_0.199_265.638)]/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-500"></div>
             
-            <div class="relative z-10">
+            <div class="relative z-10 flex flex-col items-center justify-center w-full">
                 <!-- Enhanced Icon -->
                 <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[oklch(42%_0.199_265.638)] to-[oklch(48%_0.211_225.457)] rounded-2xl flex items-center justify-center shadow-lg animate-bounce-gentle">
                     <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -174,11 +174,11 @@ $stmt_notif_daftar->close();
                 </div>
                 
                 <!-- Animated Counter -->
-                <div class="text-8xl font-extrabold text-[oklch(42%_0.199_265.638)] mb-4 animate-pulse" data-counter="<?php echo $total_praktikum; ?>">0</div>
-                <div class="card-title text-xl text-base-content mb-4 font-bold">Praktikum Diikuti</div>
+                <div class="text-8xl font-extrabold text-[oklch(42%_0.199_265.638)] mb-4 animate-pulse text-center" data-counter="<?php echo $total_praktikum; ?>">0</div>
+                <div class="card-title text-xl text-base-content mb-4 font-bold text-center">Praktikum Diikuti</div>
                 
                 <!-- Enhanced Badge -->
-                <div class="badge badge-primary badge-lg gap-2 mb-4 px-4 py-3">
+                <div class="badge badge-primary badge-lg gap-2 mb-4 px-4 py-3 mx-auto">
                     <svg class="w-4 h-4 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -186,7 +186,7 @@ $stmt_notif_daftar->close();
                 </div>
                 
                 <!-- Progress Bar with Animation -->
-                <div class="w-full">
+                <div class="w-full max-w-xs mx-auto">
                     <div class="flex justify-between text-sm mb-2">
                         <span>Progress</span>
                         <span class="text-[oklch(42%_0.199_265.638)] font-semibold"><?php echo min(100, ($total_praktikum / 10) * 100); ?>%</span>
@@ -199,12 +199,12 @@ $stmt_notif_daftar->close();
     
     <!-- Tugas Selesai Card -->
     <div class="card bg-base-100 shadow-2xl hover-lift transform transition-all duration-500 hover:shadow-3xl group mx-2 sm:mx-0">
-        <div class="card-body items-center text-center relative overflow-hidden p-6 sm:p-8">
+        <div class="card-body items-center text-center relative overflow-hidden p-6 sm:p-8 flex flex-col justify-center">
             <!-- Decorative Background -->
             <div class="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent"></div>
             <div class="absolute top-0 right-0 w-24 h-24 bg-success/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-500"></div>
             
-            <div class="relative z-10">
+            <div class="relative z-10 flex flex-col items-center justify-center w-full">
                 <!-- Enhanced Icon -->
                 <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-success to-[oklch(60%_0.15_160)] rounded-2xl flex items-center justify-center shadow-lg animate-bounce-gentle" style="animation-delay: 0.2s">
                     <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,11 +213,11 @@ $stmt_notif_daftar->close();
                 </div>
                 
                 <!-- Animated Counter -->
-                <div class="text-8xl font-extrabold text-success mb-4 animate-pulse" data-counter="<?php echo $tugas_selesai; ?>">0</div>
-                <div class="card-title text-xl text-base-content mb-4 font-bold">Tugas Selesai</div>
+                <div class="text-8xl font-extrabold text-success mb-4 animate-pulse text-center" data-counter="<?php echo $tugas_selesai; ?>">0</div>
+                <div class="card-title text-xl text-base-content mb-4 font-bold text-center">Tugas Selesai</div>
                 
                 <!-- Enhanced Badge -->
-                <div class="badge badge-success badge-lg gap-2 mb-4 px-4 py-3">
+                <div class="badge badge-success badge-lg gap-2 mb-4 px-4 py-3 mx-auto">
                     <svg class="w-4 h-4 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -225,7 +225,7 @@ $stmt_notif_daftar->close();
                 </div>
                 
                 <!-- Progress Bar with Animation -->
-                <div class="w-full">
+                <div class="w-full max-w-xs mx-auto">
                     <div class="flex justify-between text-sm mb-2">
                         <span>Tingkat Penyelesaian</span>
                         <span class="text-success font-semibold"><?php echo $tugas_selesai > 0 ? min(100, round(($tugas_selesai / ($tugas_selesai + $tugas_menunggu)) * 100)) : 0; ?>%</span>
@@ -238,12 +238,12 @@ $stmt_notif_daftar->close();
     
     <!-- Tugas Menunggu Card -->
     <div class="card bg-base-100 shadow-2xl hover-lift transform transition-all duration-500 hover:shadow-3xl group mx-2 sm:mx-0">
-        <div class="card-body items-center text-center relative overflow-hidden p-6 sm:p-8">
+        <div class="card-body items-center text-center relative overflow-hidden p-6 sm:p-8 flex flex-col justify-center">
             <!-- Decorative Background -->
             <div class="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent"></div>
             <div class="absolute top-0 right-0 w-24 h-24 bg-warning/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-500"></div>
             
-            <div class="relative z-10">
+            <div class="relative z-10 flex flex-col items-center justify-center w-full">
                 <!-- Enhanced Icon -->
                 <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-warning to-[oklch(70%_0.12_70)] rounded-2xl flex items-center justify-center shadow-lg animate-bounce-gentle" style="animation-delay: 0.4s">
                     <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -252,11 +252,11 @@ $stmt_notif_daftar->close();
                 </div>
                 
                 <!-- Animated Counter -->
-                <div class="text-8xl font-extrabold text-warning mb-4 animate-pulse" data-counter="<?php echo $tugas_menunggu; ?>">0</div>
-                <div class="card-title text-xl text-base-content mb-4 font-bold">Tugas Menunggu</div>
+                <div class="text-8xl font-extrabold text-warning mb-4 animate-pulse text-center" data-counter="<?php echo $tugas_menunggu; ?>">0</div>
+                <div class="card-title text-xl text-base-content mb-4 font-bold text-center">Tugas Menunggu</div>
                 
                 <!-- Enhanced Badge -->
-                <div class="badge badge-warning badge-lg gap-2 mb-4 px-4 py-3">
+                <div class="badge badge-warning badge-lg gap-2 mb-4 px-4 py-3 mx-auto">
                     <svg class="w-4 h-4 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -264,7 +264,7 @@ $stmt_notif_daftar->close();
                 </div>
                 
                 <!-- Progress Bar with Animation -->
-                <div class="w-full">
+                <div class="w-full max-w-xs mx-auto">
                     <div class="flex justify-between text-sm mb-2">
                         <span>Dalam Antrian</span>
                         <span class="text-warning font-semibold"><?php echo $tugas_menunggu > 0 ? min(100, round(($tugas_menunggu / ($tugas_selesai + $tugas_menunggu)) * 100)) : 0; ?>%</span>
